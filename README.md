@@ -2,13 +2,19 @@
 
 ![CI](https://github.com/Raj24Patel/FantasyRosterValueTracker/actions/workflows/ci.yml/badge.svg)
 
-A Spring Boot service that pulls my dynasty fantasy league's rosters from the
-[Sleeper API](https://docs.sleeper.com/), scores every player with a valuation model I wrote,
-and snapshots each team's total roster value once a day. The Angular front end shows power
-rankings and a line chart of how each team's value has moved over the season.
+As the NFL season approaches, I plan on carrying out a dynasty draft — a fantasy format in
+which you maintain your roster from year to year rather than redrafting it each season. That
+makes a player's age as important as the statistics he produces: a 23-year-old and a
+30-year-old with identical figures are worth very different amounts. Sleeper hosts my league
+but does not publish player values, so I developed a full-stack application that calculates
+them and tracks how each team's roster value changes across the season.
 
-Sleeper doesn't publish trade values, so the scoring model is mine — and it's configurable
-for different league formats (a QB is worth ~40% more in superflex).
+The scoring model is mine, since no price data is available: an exponential decay based on
+Sleeper's relevance ranking, multiplied by a per-position ageing curve, a positional weight,
+and an injury adjustment. Every coefficient lives in configuration rather than in code, so the
+same logic serves a standard league or a superflex one — a format whose flex position may be
+filled by a quarterback, making quarterbacks worth roughly 40% more — detected from the
+league's own settings.
 
 ![Home](docs/screenshot-home.png)
 
