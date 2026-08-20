@@ -1,5 +1,6 @@
 package com.rajpatel.dynastytracker.web;
 
+import com.rajpatel.dynastytracker.service.LeagueLimitReachedException;
 import com.rajpatel.dynastytracker.service.LeagueNotFoundException;
 import com.rajpatel.dynastytracker.service.RosterNotFoundException;
 import com.rajpatel.dynastytracker.sleeper.SleeperApiException;
@@ -40,6 +41,17 @@ public class GlobalExceptionHandler {
     ProblemDetail handleRosterNotFound(RosterNotFoundException e) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
         problem.setTitle("Roster not found");
+        return problem;
+    }
+
+    /**
+     * @param e the league-cap error
+     * @return a 409 problem detail telling the user to remove a league first
+     */
+    @ExceptionHandler(LeagueLimitReachedException.class)
+    ProblemDetail handleLeagueLimit(LeagueLimitReachedException e) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+        problem.setTitle("League limit reached");
         return problem;
     }
 

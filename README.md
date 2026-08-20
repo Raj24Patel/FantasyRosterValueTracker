@@ -125,6 +125,14 @@ Design decisions that mattered:
 | `GET` | `/api/leagues/{id}/trends?from=&to=` | Value series per team for the chart |
 | `DELETE` | `/api/leagues/{id}` | Stop tracking |
 
+There are no user accounts — every tracked league is visible to anyone who can reach
+the app. That's fine for running it yourself, but if you put it on a public URL, put
+authentication in front of it. `MAX_LEAGUES` (default 25) caps how many leagues one
+instance will track so a public deployment can't be filled up; going over returns 409.
+
+Storage is modest: the player catalog is shared across leagues (~600 KB), and each
+tracked league adds roughly 750 KB of daily snapshots per season.
+
 A nightly job (4:15am ET) re-syncs every tracked league and captures a value snapshot
 per roster.
 

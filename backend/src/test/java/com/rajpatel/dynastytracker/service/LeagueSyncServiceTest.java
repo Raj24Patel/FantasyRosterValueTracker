@@ -50,6 +50,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 class LeagueSyncServiceTest {
 
     private static final String LEAGUE_ID = "L1";
+    private static final int MAX_LEAGUES = 3;
     private static final Clock FIXED_CLOCK =
             Clock.fixed(Instant.parse("2025-10-15T09:15:00Z"), ZoneId.of("America/Detroit"));
 
@@ -114,7 +115,8 @@ class LeagueSyncServiceTest {
         lenient().when(rosterRepository.save(any(Roster.class))).thenAnswer(inv -> inv.getArgument(0));
         lenient().when(rosterRepository.findByLeagueId(LEAGUE_ID))
                 .thenReturn(List.of(rosterOne, rosterTwo));
-        when(syncLogRepository.save(any(SyncLog.class))).thenAnswer(inv -> inv.getArgument(0));
+        // lenient: the league-cap test refuses before any sync log is written
+        lenient().when(syncLogRepository.save(any(SyncLog.class))).thenAnswer(inv -> inv.getArgument(0));
 
         lenient().when(snapshotRepository.findByRosterIdAndCapturedOn(anyLong(), any()))
                 .thenAnswer(inv -> Optional.ofNullable(
@@ -131,7 +133,7 @@ class LeagueSyncServiceTest {
         syncService = new LeagueSyncService(
                 sleeperClient, leagueRepository, managerRepository, rosterRepository,
                 playerRepository, syncLogRepository, playerCatalogService, snapshotService,
-                noopTransactionTemplate(), FIXED_CLOCK);
+                noopTransactionTemplate(), FIXED_CLOCK, MAX_LEAGUES);
     }
 
     @Test
@@ -163,6 +165,30 @@ class LeagueSyncServiceTest {
         verify(syncLogRepository, org.mockito.Mockito.atLeast(2)).save(logCaptor.capture());
         assertThat(logCaptor.getValue().getStatus()).isEqualTo(SyncLog.Status.FAILED);
         assertThat(logCaptor.getValue().getMessage()).contains("502");
+    }
+
+    @Test
+    void addingBeyondTheLeagueCapIsRefusedWithoutCallingSleeper() {
+        when(leagueRepository.existsById("L2")).thenReturn(false);
+        when(leagueRepository.count()).thenReturn((long) MAX_LEAGUES);
+
+        assertThatThrownBy(() -> syncService.addLeague("L2"))
+                .isInstanceOf(LeagueLimitReachedException.class)
+                .hasMessageContaining(String.valueOf(MAX_LEAGUES));
+
+        // refused before spending any Sleeper calls, and nothing was written
+        verify(sleeperClient, never()).getLeague(any());
+        verify(rosterRepository, never()).save(any());
+        verify(syncLogRepository, never()).save(any());
+    }
+
+    @Test
+    void reAddingAnAlreadyTrackedLeagueIsAllowedAtTheCap() {
+        when(leagueRepository.existsById(LEAGUE_ID)).thenReturn(true);
+
+        syncService.addLeague(LEAGUE_ID); // at the cap, but this league already counts toward it
+
+        verify(sleeperClient).getLeague(LEAGUE_ID);
     }
 
     private static Roster roster(Long id, int sleeperRosterId, String managerId, Player player) {

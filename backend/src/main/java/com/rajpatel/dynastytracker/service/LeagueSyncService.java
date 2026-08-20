@@ -28,6 +28,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -53,6 +54,7 @@ public class LeagueSyncService {
     private final SnapshotService snapshotService;
     private final TransactionTemplate transactionTemplate;
     private final Clock clock;
+    private final int maxLeagues;
 
     public LeagueSyncService(SleeperClient sleeperClient,
                              LeagueRepository leagueRepository,
@@ -63,7 +65,8 @@ public class LeagueSyncService {
                              PlayerCatalogService playerCatalogService,
                              SnapshotService snapshotService,
                              TransactionTemplate transactionTemplate,
-                             Clock clock) {
+                             Clock clock,
+                             @Value("${tracking.max-leagues:25}") int maxLeagues) {
         this.sleeperClient = sleeperClient;
         this.leagueRepository = leagueRepository;
         this.managerRepository = managerRepository;
@@ -74,15 +77,23 @@ public class LeagueSyncService {
         this.snapshotService = snapshotService;
         this.transactionTemplate = transactionTemplate;
         this.clock = clock;
+        this.maxLeagues = maxLeagues;
     }
 
     /**
      * Starts tracking a new league by running its first sync synchronously.
+     * Re-adding a league that's already tracked is allowed (it just re-syncs)
+     * and doesn't count against the cap.
      * @param sleeperLeagueId the Sleeper league ID to track
      * @return the newly persisted league
+     * @throws LeagueLimitReachedException if the tracker is already at its league cap
      * @throws com.rajpatel.dynastytracker.sleeper.SleeperApiException if the first sync fails
      */
     public League addLeague(String sleeperLeagueId) {
+        // checked before the sync so we don't spend three Sleeper calls to then refuse
+        if (!leagueRepository.existsById(sleeperLeagueId) && leagueRepository.count() >= maxLeagues) {
+            throw new LeagueLimitReachedException(maxLeagues);
+        }
         sync(sleeperLeagueId);
         return leagueRepository.findById(sleeperLeagueId)
                 .orElseThrow(() -> new LeagueNotFoundException(sleeperLeagueId));

@@ -19,6 +19,12 @@ management:
 sleeper:
   base-url: ${SLEEPER_BASE_URL:https://api.sleeper.app/v1}
 
+tracking:
+  # There are no user accounts, so anyone with the URL can add leagues.
+  # This caps how much a public deployment can be filled up; each tracked
+  # league costs roughly 750 KB of snapshots per season.
+  max-leagues: ${MAX_LEAGUES:25}
+
 sync:
   cron: "0 15 4 * * *"
   zone: America/Detroit
