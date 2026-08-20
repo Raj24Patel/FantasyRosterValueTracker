@@ -22,7 +22,7 @@ sleeper:
 sync:
   cron: "0 15 4 * * *"
   zone: America/Detroit
-  # /players/nfl is ~5MB, Sleeper asks for at most one call per day
+  # /players/nfl is ~15MB, Sleeper asks for at most one call per day
   player-catalog-max-age-hours: 20
 
 valuation:

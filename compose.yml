@@ -22,12 +22,13 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: dev
     ports:
-      - "8080:8080"
+      # override when 8080 is taken locally: API_PORT=8081 docker compose up
+      - "${API_PORT:-8080}:8080"
 
   web:
     build: ./frontend
     ports:
-      - "4200:80"
+      - "${WEB_PORT:-4200}:80"
     depends_on:
       - api
 

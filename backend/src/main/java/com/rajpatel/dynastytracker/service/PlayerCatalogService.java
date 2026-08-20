@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Owns the daily /players/nfl refresh. The dump is ~5MB and Sleeper's docs
+ * Owns the daily /players/nfl refresh. The dump is ~15MB and Sleeper's docs
  * ask for at most one call per day, so it is cached in the player table
  * with a freshness guard and never fetched on a request path.
  */

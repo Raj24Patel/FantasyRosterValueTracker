@@ -64,7 +64,7 @@ public class SleeperClient {
     }
 
     /**
-     * Fetches Sleeper's full player dump (~5MB). Callers are responsible for
+     * Fetches Sleeper's full player dump (~15MB). Callers are responsible for
      * caching this — Sleeper's own docs say once a day, max.
      * @return every NFL player and team defense, keyed by Sleeper player ID
      */

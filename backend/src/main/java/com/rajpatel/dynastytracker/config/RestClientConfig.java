@@ -25,8 +25,8 @@ public class RestClientConfig {
                                  @Value("${sleeper.base-url}") String baseUrl) {
         var factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(Duration.ofSeconds(3));
-        // /players/nfl is a ~5MB response, give it room
-        factory.setReadTimeout(Duration.ofSeconds(30));
+        // /players/nfl is ~15MB of JSON — it needs far more room than the league calls
+        factory.setReadTimeout(Duration.ofSeconds(60));
         return builder
                 .baseUrl(baseUrl)
                 .requestFactory(factory)

@@ -26,6 +26,19 @@ Then open http://localhost:4200, paste your Sleeper league ID (it's in the leagu
 `sleeper.com/leagues/<league id>`), and the first sync pulls everything in a few seconds.
 No API keys needed — Sleeper's API is public and read-only.
 
+If port 8080 or 4200 is already taken on your machine, override either one:
+
+```
+API_PORT=8081 WEB_PORT=4300 docker compose up
+```
+
+To try it without a real league, run it against the bundled fake Sleeper server and add
+league ID `1264349217897840640`:
+
+```
+docker compose -f compose.yml -f compose.e2e.yml up --build
+```
+
 **Stack:** Java 21 · Spring Boot 3.3 · PostgreSQL 16 · Angular 18 · Docker Compose ·
 JUnit 5 / Mockito / Testcontainers / Playwright
 
@@ -90,7 +103,7 @@ Design decisions that mattered:
 - **Sync never deletes on failure.** Everything is fetched into memory first, then written
   in one transaction. If Sleeper 500s halfway through, yesterday's rosters survive.
   Every sync is recorded in a `sync_log` table (RUNNING → SUCCESS/FAILED).
-- **The player dump is cached.** `/players/nfl` is ~5MB and Sleeper asks you to fetch it
+- **The player dump is cached.** `/players/nfl` is ~15MB (12k players) and Sleeper asks you to fetch it
   at most once a day, so it lives in Postgres with a freshness guard and is never fetched
   on a request path. Data can be up to 24h stale — the UI shows "data as of ..." instead
   of hiding it.
@@ -139,14 +152,6 @@ docker compose up db -d                  # just Postgres
 cd backend && mvn spring-boot:run        # API on :8080
 cd frontend && npm start                 # dev server on :4200, proxies /api
 ```
-
-To try it without a real league, run the stack against the bundled stub:
-
-```
-docker compose -f compose.yml -f compose.e2e.yml up --build
-```
-
-and add league ID `1264349217897840640`.
 
 ## What I'd do next
 
