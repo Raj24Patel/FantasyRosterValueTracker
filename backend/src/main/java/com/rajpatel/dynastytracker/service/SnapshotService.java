@@ -16,6 +16,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/** Computes and stores each roster's daily value snapshot — the data behind the trend chart. */
 @Service
 public class SnapshotService {
 
@@ -35,9 +36,12 @@ public class SnapshotService {
     }
 
     /**
-     * One snapshot per roster per day. Re-running a sync updates the existing
-     * row for today instead of adding a duplicate point to the trend chart
-     * (backed by the UNIQUE (roster_id, captured_on) constraint).
+     * Values every roster in a league as of `date` and upserts one snapshot
+     * row per roster. Re-running for the same date updates the existing row
+     * instead of adding a duplicate point (backed by the UNIQUE
+     * (roster_id, captured_on) constraint), so re-syncs are idempotent.
+     * @param leagueId the league whose rosters to snapshot
+     * @param date the date to record the snapshot under (usually today)
      */
     @Transactional
     public void captureSnapshots(String leagueId, LocalDate date) {
@@ -85,6 +89,10 @@ public class SnapshotService {
         }
     }
 
+    /**
+     * @param ages ages of every player on the roster who has a known age
+     * @return the mean age rounded to one decimal, or null if no ages are known
+     */
     private BigDecimal averageAge(List<Integer> ages) {
         if (ages.isEmpty()) {
             return null;

@@ -5,82 +5,35 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DynastyApiService } from '../core/dynasty-api.service';
 import { League, RosterSummary } from '../core/models';
 
+/** Columns the rankings table can be sorted by. */
 type SortKey = 'rank' | 'teamName' | 'wins' | 'pointsFor' | 'totalValue' | 'avgAge';
 
+/**
+ * Power rankings page for one league: a sortable table of every roster with
+ * record, points-for, total value, a stacked positional-value bar, and
+ * average age. Rows link through to the roster detail page.
+ */
 @Component({
   selector: 'app-power-rankings',
   standalone: true,
   imports: [CommonModule, RouterLink],
-  template: `
-    @if (league(); as lg) {
-      <div class="page-head">
-        <div>
-          <h1>{{ lg.name }}</h1>
-          <p class="muted">{{ lg.season }} · {{ lg.totalRosters }} teams
-            @if (lg.superflex) { · superflex }
-            · data as of {{ lg.lastSyncedAt | date: 'MMM d, h:mm a' }}</p>
-        </div>
-        <a [routerLink]="['/leagues', lg.id, 'trends']" class="button-link">View trends →</a>
-      </div>
-    }
-
-    <div class="card table-card">
-      <table class="rankings" data-testid="rankings-table">
-        <thead>
-          <tr>
-            <th (click)="sortBy('rank')" class="sortable">#</th>
-            <th (click)="sortBy('teamName')" class="sortable">Team</th>
-            <th (click)="sortBy('wins')" class="sortable">Record</th>
-            <th (click)="sortBy('pointsFor')" class="sortable num">PF</th>
-            <th (click)="sortBy('totalValue')" class="sortable num">Value</th>
-            <th class="bar-col">Positional breakdown</th>
-            <th (click)="sortBy('avgAge')" class="sortable num">Avg age</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of sorted(); track row.rosterId) {
-            <tr [routerLink]="['/rosters', row.rosterId]" class="clickable">
-              <td class="rank">{{ row.rank }}</td>
-              <td>
-                <div class="team">{{ row.teamName }}</div>
-                @if (row.managerName) {
-                  <div class="muted small">{{ row.managerName }}</div>
-                }
-              </td>
-              <td>{{ row.wins }}–{{ row.losses }}</td>
-              <td class="num">{{ row.pointsFor | number: '1.0-0' }}</td>
-              <td class="num value">{{ row.totalValue | number: '1.0-0' }}</td>
-              <td class="bar-col">
-                <div class="stack" [style.width.%]="barWidth(row)">
-                  <span class="seg qb" [style.flex-grow]="row.qbValue" title="QB {{ row.qbValue | number: '1.0-0' }}"></span>
-                  <span class="seg rb" [style.flex-grow]="row.rbValue" title="RB {{ row.rbValue | number: '1.0-0' }}"></span>
-                  <span class="seg wr" [style.flex-grow]="row.wrValue" title="WR {{ row.wrValue | number: '1.0-0' }}"></span>
-                  <span class="seg te" [style.flex-grow]="row.teValue" title="TE {{ row.teValue | number: '1.0-0' }}"></span>
-                </div>
-              </td>
-              <td class="num">{{ row.avgAge ?? '—' }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-      <div class="legend">
-        <span><i class="dot qb"></i>QB</span>
-        <span><i class="dot rb"></i>RB</span>
-        <span><i class="dot wr"></i>WR</span>
-        <span><i class="dot te"></i>TE</span>
-      </div>
-    </div>
-  `
+  templateUrl: './power-rankings.component.html',
+  styleUrl: './power-rankings.component.css'
 })
 export class PowerRankingsComponent implements OnInit {
   private api = inject(DynastyApiService);
   private route = inject(ActivatedRoute);
 
+  /** The league being viewed (header info). */
   league = signal<League | null>(null);
+  /** Ranking rows as returned by the API (already ranked by value). */
   rows = signal<RosterSummary[]>([]);
+  /** Current sort column. */
   sortKey = signal<SortKey>('rank');
+  /** Sort direction; true = ascending. */
   sortAsc = signal(true);
 
+  /** The rows re-sorted by the active column/direction. Output: a new sorted array. */
   sorted = computed(() => {
     const key = this.sortKey();
     const asc = this.sortAsc() ? 1 : -1;
@@ -91,14 +44,21 @@ export class PowerRankingsComponent implements OnInit {
     });
   });
 
+  /** Largest total value in the league — scales the positional bars. */
   private maxValue = computed(() => Math.max(1, ...this.rows().map((r) => r.totalValue)));
 
+  /** On load: fetch the league header and its ranked rosters (id from the route). */
   ngOnInit(): void {
     const leagueId = this.route.snapshot.paramMap.get('id')!;
     this.api.getLeague(leagueId).subscribe((league) => this.league.set(league));
     this.api.getPowerRankings(leagueId).subscribe((rows) => this.rows.set(rows));
   }
 
+  /**
+   * Header click handler: sorts by the given column, or flips the direction
+   * if that column is already active.
+   * @param key the column that was clicked
+   */
   sortBy(key: SortKey): void {
     if (this.sortKey() === key) {
       this.sortAsc.update((v) => !v);
@@ -108,6 +68,11 @@ export class PowerRankingsComponent implements OnInit {
     }
   }
 
+  /**
+   * Width of a row's positional bar relative to the league leader.
+   * @param row the ranking row
+   * @returns a percentage in (0, 100]
+   */
   barWidth(row: RosterSummary): number {
     return (row.totalValue / this.maxValue()) * 100;
   }

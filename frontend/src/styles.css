@@ -1,3 +1,6 @@
+/* Global styles + design tokens shared by every component. Anything specific
+   to one page/component lives in that component's own .css file instead. */
+
 * {
   box-sizing: border-box;
 }
@@ -47,47 +50,7 @@ h1 {
   padding: 1.5rem 1rem 4rem;
 }
 
-/* top bar */
-.topbar {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 0.8rem 1rem;
-}
-
-.brand {
-  color: var(--text);
-  font-weight: 700;
-  font-size: 1.05rem;
-}
-
-.brand:hover {
-  text-decoration: none;
-  color: var(--accent);
-}
-
-/* global loading bar */
-.loading-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: transparent;
-  z-index: 10;
-}
-
-.loading-bar.active {
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
-  background-size: 50% 100%;
-  animation: slide 1s linear infinite;
-}
-
-@keyframes slide {
-  from { background-position: -50% 0; }
-  to { background-position: 150% 0; }
-}
-
-/* cards + layout */
+/* shared card surface used by every page */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -124,39 +87,15 @@ h1 {
   padding: 0.5rem 0.9rem;
   border-radius: 8px;
   white-space: nowrap;
+  transition: border-color 0.15s ease, transform 0.15s ease;
 }
 
-/* league list */
-.add-league {
-  margin-bottom: 1.5rem;
-}
-
-.add-league label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 0.4rem;
-}
-
-.add-row {
-  display: flex;
-  gap: 0.6rem;
-}
-
-.add-row input {
-  flex: 1;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: 8px;
-  padding: 0.55rem 0.8rem;
-  font-size: 0.95rem;
-}
-
-.add-row input:focus {
-  outline: none;
+.button-link:hover {
   border-color: var(--accent);
+  transform: translateY(-1px);
 }
 
+/* buttons */
 button {
   background: var(--accent);
   color: #fff;
@@ -166,6 +105,15 @@ button {
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
+  transition: filter 0.15s ease, transform 0.1s ease;
+}
+
+button:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 button:disabled {
@@ -185,51 +133,7 @@ button.link.danger {
   color: var(--danger);
 }
 
-.hint {
-  color: var(--muted);
-  font-size: 0.8rem;
-  margin: 0.5rem 0 0;
-}
-
-.league-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
-}
-
-.league-card-head {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.league-name {
-  font-weight: 700;
-  font-size: 1.05rem;
-}
-
-.pill {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  color: var(--muted);
-  border-radius: 999px;
-  font-size: 0.72rem;
-  padding: 0.05rem 0.55rem;
-}
-
-.pill-sf {
-  color: var(--te);
-  border-color: var(--te);
-}
-
-.league-actions {
-  display: flex;
-  gap: 1rem;
-  margin-top: 0.6rem;
-  font-size: 0.88rem;
-}
-
-/* tables */
+/* shared table look, used by the rankings and roster player tables */
 .table-card {
   padding: 0.25rem 0;
   overflow-x: auto;
@@ -269,6 +173,7 @@ tbody tr:last-child td {
 
 tr.clickable {
   cursor: pointer;
+  transition: background-color 0.12s ease;
 }
 
 tr.clickable:hover {
@@ -294,133 +199,15 @@ tr.clickable:hover {
   color: var(--accent);
 }
 
-/* positional stacked bar */
-.bar-col {
-  width: 220px;
-  min-width: 160px;
-}
-
-.stack {
-  display: flex;
-  height: 12px;
-  border-radius: 6px;
-  overflow: hidden;
-  min-width: 8px;
-  background: var(--surface-2);
-}
-
-.seg {
-  display: block;
-}
-
-.seg.qb { background: var(--qb); }
-.seg.rb { background: var(--rb); }
-.seg.wr { background: var(--wr); }
-.seg.te { background: var(--te); }
-
-.legend {
-  display: flex;
-  gap: 1.2rem;
-  padding: 0.7rem 1rem 0.5rem;
-  color: var(--muted);
-  font-size: 0.8rem;
-}
-
-.legend .dot {
-  display: inline-block;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  margin-right: 0.35rem;
-}
-
-.dot.qb { background: var(--qb); }
-.dot.rb { background: var(--rb); }
-.dot.wr { background: var(--wr); }
-.dot.te { background: var(--te); }
-
-/* roster detail */
-.total-badge {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0.6rem 1.2rem;
-  text-align: right;
-}
-
-.total-badge .label {
-  display: block;
-  color: var(--muted);
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.total-badge .value {
-  font-size: 1.4rem;
-}
-
-.starter {
-  color: var(--rb);
-  margin-left: 0.4rem;
-  font-size: 0.7rem;
-  vertical-align: middle;
-}
-
-.pos-tag {
-  display: inline-block;
-  min-width: 2.2rem;
-  text-align: center;
-  border-radius: 5px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 0.1rem 0.3rem;
-  background: var(--surface-2);
-  color: var(--muted);
-}
-
-.pos-tag[data-pos="QB"] { color: var(--qb); }
-.pos-tag[data-pos="RB"] { color: var(--rb); }
-.pos-tag[data-pos="WR"] { color: var(--wr); }
-.pos-tag[data-pos="TE"] { color: var(--te); }
-
-.injury {
-  border: 1px solid var(--te);
-  color: var(--te);
-  border-radius: 5px;
-  font-size: 0.72rem;
-  padding: 0.05rem 0.4rem;
-}
-
-.injury.severe {
-  border-color: var(--danger);
-  color: var(--danger);
-}
-
-/* trend chart */
-.chart-card {
-  height: 460px;
-  position: relative;
-}
-
-/* toasts */
-.toasts {
-  position: fixed;
-  bottom: 1rem;
-  right: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  z-index: 20;
-  max-width: 340px;
-}
-
-.toast {
-  background: var(--surface-2);
-  border: 1px solid var(--danger);
-  border-radius: 8px;
-  padding: 0.7rem 1rem;
-  font-size: 0.88rem;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+/* Respect the user's motion preference: every animation/transition added
+   for polish collapses to an instant, static state. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

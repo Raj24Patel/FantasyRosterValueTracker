@@ -11,6 +11,7 @@ import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+/** One day's computed value for a roster, total and by position — a point on the trend chart. */
 @Entity
 @Table(name = "value_snapshot")
 public class ValueSnapshot {

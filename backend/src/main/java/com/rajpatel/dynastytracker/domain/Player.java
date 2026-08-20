@@ -5,6 +5,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 
+/**
+ * One NFL player (or team defense) from Sleeper's player catalog, cached
+ * locally so valuation never needs a live Sleeper call. Plain JPA entity —
+ * getters/setters only.
+ */
 @Entity
 @Table(name = "player")
 public class Player {

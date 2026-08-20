@@ -1,0 +1,17 @@
+<!-- thin animated bar at the very top while any HTTP request is in flight -->
+<div class="loading-bar" [class.active]="loading.loading()"></div>
+
+<header class="topbar">
+  <a routerLink="/leagues" class="brand">🏈 Dynasty Roster Value Tracker</a>
+</header>
+
+<main class="container">
+  <router-outlet />
+</main>
+
+<!-- error toasts from failed API calls; click to dismiss -->
+<div class="toasts">
+  @for (toast of toasts.toasts(); track toast.id) {
+    <div class="toast" (click)="toasts.dismiss(toast.id)">{{ toast.message }}</div>
+  }
+</div>

@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/** Builds the value-over-time series (one line per team) for the trend chart. */
 @Service
 public class TrendService {
 
@@ -41,6 +42,13 @@ public class TrendService {
         this.clock = clock;
     }
 
+    /**
+     * @param leagueId the league whose value history to fetch
+     * @param from inclusive lower date bound; defaults to 365 days before `to` if null
+     * @param to inclusive upper date bound; defaults to today if null
+     * @return one series per roster (even rosters with zero snapshots in range get an empty series)
+     * @throws LeagueNotFoundException if the league isn't tracked
+     */
     @Transactional(readOnly = true)
     public List<TrendSeriesResponse> getTrends(String leagueId, LocalDate from, LocalDate to) {
         leagueRepository.findById(leagueId).orElseThrow(() -> new LeagueNotFoundException(leagueId));

@@ -9,10 +9,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 
+/** Audit row for one league sync attempt — when it ran, and whether it succeeded. */
 @Entity
 @Table(name = "sync_log")
 public class SyncLog {
 
+    /** Lifecycle of a sync attempt: starts RUNNING, ends SUCCESS or FAILED. */
     public enum Status {
         RUNNING, SUCCESS, FAILED
     }
@@ -33,6 +35,11 @@ public class SyncLog {
     public SyncLog() {
     }
 
+    /**
+     * Starts a new sync log row in RUNNING status.
+     * @param leagueId the league being synced
+     * @param startedAt when the sync began
+     */
     public SyncLog(String leagueId, OffsetDateTime startedAt) {
         this.leagueId = leagueId;
         this.startedAt = startedAt;

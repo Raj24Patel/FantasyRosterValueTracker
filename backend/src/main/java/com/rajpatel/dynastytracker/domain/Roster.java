@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+/** One team's roster within a league: record, points, and its current set of rostered players. */
 @Entity
 @Table(name = "roster")
 public class Roster {

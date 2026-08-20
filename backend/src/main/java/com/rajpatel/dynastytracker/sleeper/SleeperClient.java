@@ -32,11 +32,19 @@ public class SleeperClient {
         this.restClient = sleeperRestClient;
     }
 
+    /**
+     * @param leagueId the Sleeper league ID
+     * @return league name, season, roster count, and roster positions (used to detect superflex)
+     */
     public SleeperLeague getLeague(String leagueId) {
         return withRetry("GET /league/" + leagueId, () ->
                 restClient.get().uri("/league/{id}", leagueId).retrieve().body(SleeperLeague.class));
     }
 
+    /**
+     * @param leagueId the Sleeper league ID
+     * @return every manager (Sleeper user) in the league
+     */
     public List<SleeperUser> getUsers(String leagueId) {
         return withRetry("GET /league/" + leagueId + "/users", () ->
                 restClient.get().uri("/league/{id}/users", leagueId).retrieve()
@@ -44,6 +52,10 @@ public class SleeperClient {
                         }));
     }
 
+    /**
+     * @param leagueId the Sleeper league ID
+     * @return every roster in the league, with its player IDs, starters, and record
+     */
     public List<SleeperRoster> getRosters(String leagueId) {
         return withRetry("GET /league/" + leagueId + "/rosters", () ->
                 restClient.get().uri("/league/{id}/rosters", leagueId).retrieve()
@@ -51,7 +63,11 @@ public class SleeperClient {
                         }));
     }
 
-    /** ~5MB response. Callers are responsible for caching this — once a day, max. */
+    /**
+     * Fetches Sleeper's full player dump (~5MB). Callers are responsible for
+     * caching this — Sleeper's own docs say once a day, max.
+     * @return every NFL player and team defense, keyed by Sleeper player ID
+     */
     public Map<String, SleeperPlayer> getAllPlayers() {
         return withRetry("GET /players/nfl", () ->
                 restClient.get().uri("/players/nfl").retrieve()
@@ -59,6 +75,14 @@ public class SleeperClient {
                         }));
     }
 
+    /**
+     * Runs one Sleeper call with retry-on-5xx/network-failure (exponential
+     * backoff, up to {@link #MAX_ATTEMPTS} tries); 4xx responses fail immediately.
+     * @param description label used in log lines and the eventual exception message
+     * @param call the actual HTTP call to attempt
+     * @return the parsed response body
+     * @throws SleeperApiException if every attempt fails, or the response body is null
+     */
     private <T> T withRetry(String description, Supplier<T> call) {
         RuntimeException lastFailure = null;
         for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {

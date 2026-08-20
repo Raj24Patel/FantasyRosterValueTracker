@@ -4,26 +4,21 @@ import { RouterLink, RouterOutlet } from '@angular/router';
 import { LoadingService } from './core/loading.service';
 import { ToastService } from './core/toast.service';
 
+/**
+ * Root shell of the app: the top navigation bar, the global loading bar,
+ * the router outlet that swaps pages in, and the error toast stack.
+ */
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [RouterOutlet, RouterLink],
-  template: `
-    <div class="loading-bar" [class.active]="loading.loading()"></div>
-    <header class="topbar">
-      <a routerLink="/leagues" class="brand">🏈 Dynasty Roster Value Tracker</a>
-    </header>
-    <main class="container">
-      <router-outlet />
-    </main>
-    <div class="toasts">
-      @for (toast of toasts.toasts(); track toast.id) {
-        <div class="toast" (click)="toasts.dismiss(toast.id)">{{ toast.message }}</div>
-      }
-    </div>
-  `
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css'
 })
 export class AppComponent {
+  /** Drives the loading bar — counted up/down by the HTTP interceptor. */
   loading = inject(LoadingService);
+
+  /** Error toasts pushed by the HTTP interceptor; template renders + dismisses them. */
   toasts = inject(ToastService);
 }

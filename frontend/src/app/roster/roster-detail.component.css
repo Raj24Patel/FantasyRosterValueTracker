@@ -1,0 +1,59 @@
+/* big roster-value badge in the page header */
+.total-badge {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.6rem 1.2rem;
+  text-align: right;
+}
+
+.total-badge .label {
+  display: block;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.total-badge .value {
+  font-size: 1.4rem;
+}
+
+/* green dot next to players in the starting lineup */
+.starter {
+  color: var(--rb);
+  margin-left: 0.4rem;
+  font-size: 0.7rem;
+  vertical-align: middle;
+}
+
+.pos-tag {
+  display: inline-block;
+  min-width: 2.2rem;
+  text-align: center;
+  border-radius: 5px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.1rem 0.3rem;
+  background: var(--surface-2);
+  color: var(--muted);
+}
+
+.pos-tag[data-pos="QB"] { color: var(--qb); }
+.pos-tag[data-pos="RB"] { color: var(--rb); }
+.pos-tag[data-pos="WR"] { color: var(--wr); }
+.pos-tag[data-pos="TE"] { color: var(--te); }
+
+/* injury badges: amber for questionable/doubtful, red for IR/out */
+.injury {
+  border: 1px solid var(--te);
+  color: var(--te);
+  border-radius: 5px;
+  font-size: 0.72rem;
+  padding: 0.05rem 0.4rem;
+}
+
+.injury.severe {
+  border-color: var(--danger);
+  color: var(--danger);
+}

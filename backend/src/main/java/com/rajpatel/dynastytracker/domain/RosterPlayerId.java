@@ -4,6 +4,7 @@ import jakarta.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.Objects;
 
+/** Composite primary key (rosterId, playerId) for {@link RosterPlayer}. */
 @Embeddable
 public class RosterPlayerId implements Serializable {
 

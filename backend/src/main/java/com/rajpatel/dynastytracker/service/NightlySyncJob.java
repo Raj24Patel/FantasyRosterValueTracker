@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+/** Scheduled trigger that re-syncs every tracked league once a night. */
 @Component
 public class NightlySyncJob {
 
@@ -20,6 +21,11 @@ public class NightlySyncJob {
         this.leagueSyncService = leagueSyncService;
     }
 
+    /**
+     * Fires on the configured cron schedule (default 4:15am ET). No input;
+     * re-syncs every tracked league in turn — one league failing (logged, not
+     * thrown) doesn't stop the rest from syncing.
+     */
     @Scheduled(cron = "${sync.cron}", zone = "${sync.zone}")
     public void nightlySync() {
         // one league failing shouldn't stop the rest

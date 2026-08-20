@@ -1,0 +1,59 @@
+@if (league(); as lg) {
+  <div class="page-head">
+    <div>
+      <h1>{{ lg.name }}</h1>
+      <p class="muted">{{ lg.season }} · {{ lg.totalRosters }} teams
+        @if (lg.superflex) { · superflex }
+        · data as of {{ lg.lastSyncedAt | date: 'MMM d, h:mm a' }}</p>
+    </div>
+    <a [routerLink]="['/leagues', lg.id, 'trends']" class="button-link">View trends →</a>
+  </div>
+}
+
+<div class="card table-card">
+  <table class="rankings" data-testid="rankings-table">
+    <thead>
+      <tr>
+        <th (click)="sortBy('rank')" class="sortable">#</th>
+        <th (click)="sortBy('teamName')" class="sortable">Team</th>
+        <th (click)="sortBy('wins')" class="sortable">Record</th>
+        <th (click)="sortBy('pointsFor')" class="sortable num">PF</th>
+        <th (click)="sortBy('totalValue')" class="sortable num">Value</th>
+        <th class="bar-col">Positional breakdown</th>
+        <th (click)="sortBy('avgAge')" class="sortable num">Avg age</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of sorted(); track row.rosterId) {
+        <tr [routerLink]="['/rosters', row.rosterId]" class="clickable">
+          <td class="rank">{{ row.rank }}</td>
+          <td>
+            <div class="team">{{ row.teamName }}</div>
+            @if (row.managerName) {
+              <div class="muted small">{{ row.managerName }}</div>
+            }
+          </td>
+          <td>{{ row.wins }}–{{ row.losses }}</td>
+          <td class="num">{{ row.pointsFor | number: '1.0-0' }}</td>
+          <td class="num value">{{ row.totalValue | number: '1.0-0' }}</td>
+          <td class="bar-col">
+            <!-- bar length = share of the league leader's value; segments = QB/RB/WR/TE split -->
+            <div class="stack" [style.width.%]="barWidth(row)">
+              <span class="seg qb" [style.flex-grow]="row.qbValue" title="QB {{ row.qbValue | number: '1.0-0' }}"></span>
+              <span class="seg rb" [style.flex-grow]="row.rbValue" title="RB {{ row.rbValue | number: '1.0-0' }}"></span>
+              <span class="seg wr" [style.flex-grow]="row.wrValue" title="WR {{ row.wrValue | number: '1.0-0' }}"></span>
+              <span class="seg te" [style.flex-grow]="row.teValue" title="TE {{ row.teValue | number: '1.0-0' }}"></span>
+            </div>
+          </td>
+          <td class="num">{{ row.avgAge ?? '—' }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+  <div class="legend">
+    <span><i class="dot qb"></i>QB</span>
+    <span><i class="dot rb"></i>RB</span>
+    <span><i class="dot wr"></i>WR</span>
+    <span><i class="dot te"></i>TE</span>
+  </div>
+</div>

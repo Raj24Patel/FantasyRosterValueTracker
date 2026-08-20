@@ -60,7 +60,11 @@ public class PlayerCatalogService {
         this.maxAgeHours = maxAgeHours;
     }
 
-    /** @return true if a refresh actually happened */
+    /**
+     * Refreshes the cached player catalog only if it's older than the
+     * configured freshness window. No input; called before every league sync.
+     * @return true if a refresh actually happened, false if the cache was still fresh
+     */
     public boolean refreshIfStale() {
         Optional<OffsetDateTime> newest = playerRepository.findNewestUpdatedAt();
         OffsetDateTime cutoff = OffsetDateTime.now(clock).minusHours(maxAgeHours);
@@ -72,6 +76,11 @@ public class PlayerCatalogService {
         return true;
     }
 
+    /**
+     * Unconditionally fetches Sleeper's full player dump and upserts every
+     * fantasy-relevant player (QB/RB/WR/TE/K/DEF) into the player table.
+     * No input/output; writes directly to the database.
+     */
     @Transactional
     public void refresh() {
         List<SleeperPlayer> relevant = sleeperClient.getAllPlayers().values().stream()

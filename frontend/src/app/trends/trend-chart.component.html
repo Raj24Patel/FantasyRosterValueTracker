@@ -1,0 +1,17 @@
+@if (league(); as lg) {
+  <div class="page-head">
+    <div>
+      <h1>{{ lg.name }} — Value Trends</h1>
+      <p class="muted">One line per team, one point per nightly snapshot.</p>
+    </div>
+    <a [routerLink]="['/leagues', lg.id]" class="button-link">← Power rankings</a>
+  </div>
+}
+
+<div class="card chart-card">
+  <canvas #canvas data-testid="trend-canvas"></canvas>
+  @if (empty()) {
+    <p class="empty">Only one snapshot so far — the chart gets interesting after a few
+      nightly syncs.</p>
+  }
+</div>

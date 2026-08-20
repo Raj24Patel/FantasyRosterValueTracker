@@ -5,7 +5,13 @@ import { catchError, finalize, throwError } from 'rxjs';
 import { LoadingService } from './loading.service';
 import { ToastService } from './toast.service';
 
-/** Global loading bar + error toast for every API call. */
+/**
+ * Wraps every outgoing HTTP request: toggles the global loading bar for its
+ * duration, and turns any error into a toast (using the backend's RFC 7807
+ * `detail` field when present) before re-throwing so callers can still react.
+ * Input/output: standard HttpInterceptorFn signature — passes the request
+ * through unchanged, just observes it.
+ */
 export const loadingInterceptor: HttpInterceptorFn = (req, next) => {
   const loading = inject(LoadingService);
   const toast = inject(ToastService);

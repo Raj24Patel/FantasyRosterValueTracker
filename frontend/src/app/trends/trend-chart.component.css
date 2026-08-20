@@ -1,0 +1,5 @@
+/* fixed-height container so Chart.js has something to fill */
+.chart-card {
+  height: 460px;
+  position: relative;
+}

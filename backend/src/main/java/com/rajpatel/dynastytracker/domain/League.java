@@ -5,6 +5,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 
+/** A dynasty league being tracked, one row per Sleeper league. Plain JPA entity — getters/setters only. */
 @Entity
 @Table(name = "league")
 public class League {

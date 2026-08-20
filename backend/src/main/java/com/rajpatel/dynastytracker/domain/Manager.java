@@ -4,6 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+/** A league member (Sleeper user) who owns zero or more rosters. Plain JPA entity — getters/setters only. */
 @Entity
 @Table(name = "manager")
 public class Manager {

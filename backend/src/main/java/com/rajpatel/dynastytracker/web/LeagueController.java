@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/** REST endpoints for tracking, listing, and re-syncing leagues. */
 @RestController
 @RequestMapping("/api/leagues")
 public class LeagueController {
@@ -30,6 +31,12 @@ public class LeagueController {
         this.leagueSyncService = leagueSyncService;
     }
 
+    /**
+     * Starts tracking a league (or re-syncs it if already tracked) by running
+     * its first sync synchronously — the response reflects fresh data.
+     * @param request body containing the Sleeper league ID
+     * @return 201 + Location for a new league, 200 for one already tracked
+     */
     @PostMapping
     public ResponseEntity<LeagueResponse> addLeague(@Valid @RequestBody AddLeagueRequest request) {
         String leagueId = request.sleeperLeagueId().trim();
@@ -42,11 +49,17 @@ public class LeagueController {
         return ResponseEntity.created(URI.create("/api/leagues/" + league.getId())).body(body);
     }
 
+    /** @return every league currently tracked by this app */
     @GetMapping
     public List<LeagueResponse> getLeagues() {
         return leagueRepository.findAll().stream().map(LeagueResponse::from).toList();
     }
 
+    /**
+     * @param id the tracked league's ID
+     * @return that league's header info, including lastSyncedAt
+     * @throws LeagueNotFoundException (→ 404) if the league isn't tracked
+     */
     @GetMapping("/{id}")
     public LeagueResponse getLeague(@PathVariable String id) {
         return leagueRepository.findById(id)
@@ -54,6 +67,12 @@ public class LeagueController {
                 .orElseThrow(() -> new LeagueNotFoundException(id));
     }
 
+    /**
+     * Kicks off an async re-sync; does not wait for it to finish.
+     * @param id the league to re-sync
+     * @return 202 Accepted
+     * @throws LeagueNotFoundException (→ 404) if the league isn't tracked
+     */
     @PostMapping("/{id}/sync")
     public ResponseEntity<Void> resync(@PathVariable String id) {
         if (!leagueRepository.existsById(id)) {
@@ -63,6 +82,12 @@ public class LeagueController {
         return ResponseEntity.accepted().build();
     }
 
+    /**
+     * Stops tracking a league; cascades to delete its managers, rosters, and snapshot history.
+     * @param id the league to delete
+     * @return 204 No Content
+     * @throws LeagueNotFoundException (→ 404) if the league isn't tracked
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteLeague(@PathVariable String id) {
         if (!leagueRepository.existsById(id)) {

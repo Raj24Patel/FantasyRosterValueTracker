@@ -4,6 +4,7 @@ import { PowerRankingsComponent } from './rankings/power-rankings.component';
 import { TrendChartComponent } from './trends/trend-chart.component';
 import { RosterDetailComponent } from './roster/roster-detail.component';
 
+/** Top-level page routes; unmatched paths fall back to the league list. */
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'leagues' },
   { path: 'leagues', component: LeagueListComponent },

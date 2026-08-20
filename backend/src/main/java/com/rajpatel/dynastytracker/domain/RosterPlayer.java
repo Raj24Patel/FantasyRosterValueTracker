@@ -9,6 +9,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 
+/** Join entity linking a {@link Roster} to a {@link Player}, with a starter flag. */
 @Entity
 @Table(name = "roster_player")
 public class RosterPlayer {

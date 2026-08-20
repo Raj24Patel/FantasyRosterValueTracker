@@ -4,12 +4,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 
+/** Response shape of one manager in {@code GET /league/{leagueId}/users}. */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record SleeperUser(
         @JsonProperty("user_id") String userId,
         @JsonProperty("display_name") String displayName,
         Map<String, Object> metadata) {
 
+    /** @return the manager's custom team name from metadata, or null if they never set one */
     public String teamName() {
         if (metadata == null) {
             return null;

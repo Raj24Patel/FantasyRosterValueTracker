@@ -32,6 +32,12 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
+/**
+ * Orchestrates a league sync: calls Sleeper for league/user/roster data,
+ * refreshes the player catalog if it's stale, writes everything in one
+ * transaction, then captures that day's value snapshots. Records every
+ * attempt in a {@link SyncLog} row.
+ */
 @Service
 public class LeagueSyncService {
 
@@ -70,12 +76,24 @@ public class LeagueSyncService {
         this.clock = clock;
     }
 
+    /**
+     * Starts tracking a new league by running its first sync synchronously.
+     * @param sleeperLeagueId the Sleeper league ID to track
+     * @return the newly persisted league
+     * @throws com.rajpatel.dynastytracker.sleeper.SleeperApiException if the first sync fails
+     */
     public League addLeague(String sleeperLeagueId) {
         sync(sleeperLeagueId);
         return leagueRepository.findById(sleeperLeagueId)
                 .orElseThrow(() -> new LeagueNotFoundException(sleeperLeagueId));
     }
 
+    /**
+     * Fire-and-forget re-sync for an already-tracked league (used by the
+     * manual "Re-sync" button). Failures are logged, not thrown, since
+     * there's no caller left to catch them.
+     * @param leagueId the league to re-sync
+     */
     @Async
     public void syncAsync(String leagueId) {
         try {
@@ -86,9 +104,12 @@ public class LeagueSyncService {
     }
 
     /**
+     * Runs one full sync for a league: fetch from Sleeper, persist, snapshot.
      * Everything is fetched into memory before anything is written, and the write
      * happens in one transaction. A failed sync must never delete existing data —
      * if Sleeper 500s halfway, yesterday's rosters are still there.
+     * @param leagueId the Sleeper league ID to sync
+     * @throws com.rajpatel.dynastytracker.sleeper.SleeperApiException if any Sleeper call fails after retries
      */
     public void sync(String leagueId) {
         SyncLog syncLog = syncLogRepository.save(new SyncLog(leagueId, OffsetDateTime.now(clock)));
@@ -114,6 +135,13 @@ public class LeagueSyncService {
         }
     }
 
+    /**
+     * Upserts the league, its managers, and its rosters (including per-roster
+     * players) from freshly fetched Sleeper data. Called inside one transaction.
+     * @param sleeperLeague league header data from Sleeper
+     * @param users managers from Sleeper
+     * @param sleeperRosters rosters from Sleeper
+     */
     private void persist(SleeperLeague sleeperLeague, List<SleeperUser> users, List<SleeperRoster> sleeperRosters) {
         League league = leagueRepository.findById(sleeperLeague.leagueId()).orElseGet(League::new);
         league.setId(sleeperLeague.leagueId());
@@ -160,6 +188,13 @@ public class LeagueSyncService {
         }
     }
 
+    /**
+     * Reconciles one roster's player links against Sleeper's current list —
+     * diffs instead of clear-and-reinsert, so an unchanged roster is a no-op.
+     * @param roster the roster entity being updated (its player set is mutated in place)
+     * @param sleeperRoster Sleeper's current player IDs and starters for this roster
+     * @param knownPlayers players already found in the local catalog, keyed by ID
+     */
     private void syncRosterPlayers(Roster roster, SleeperRoster sleeperRoster, Map<String, Player> knownPlayers) {
         List<String> incomingIds = sleeperRoster.players() != null ? sleeperRoster.players() : List.of();
         Set<String> starterIds = sleeperRoster.starters() != null

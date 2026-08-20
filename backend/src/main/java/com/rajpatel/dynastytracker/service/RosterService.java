@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/** Builds the API response shapes for power rankings and roster detail. */
 @Service
 public class RosterService {
 
@@ -43,7 +44,14 @@ public class RosterService {
         this.valuationService = valuationService;
     }
 
-    /** Power rankings: rosters ordered by their latest snapshot's total value. */
+    /**
+     * Power rankings: every roster in the league, ordered by their latest
+     * snapshot's total value (descending). Rosters with no snapshot yet sort
+     * last, valued at zero.
+     * @param leagueId the league to rank
+     * @return ranked roster summaries, rank 1 = highest value
+     * @throws LeagueNotFoundException if the league isn't tracked
+     */
     @Transactional(readOnly = true)
     public List<RosterSummaryResponse> getPowerRankings(String leagueId) {
         leagueRepository.findById(leagueId).orElseThrow(() -> new LeagueNotFoundException(leagueId));
@@ -88,7 +96,15 @@ public class RosterService {
         return rankings;
     }
 
-    /** Roster detail with per-player values, computed live against the current catalog. */
+    /**
+     * Roster detail with a per-player value breakdown, computed live against
+     * the current player catalog (not read from a stored snapshot), sorted
+     * by value descending.
+     * @param rosterId the roster to look up
+     * @return roster header info plus every player's current value
+     * @throws RosterNotFoundException if the roster doesn't exist
+     * @throws LeagueNotFoundException if the roster's league is somehow missing
+     */
     @Transactional(readOnly = true)
     public RosterDetailResponse getRosterDetail(Long rosterId) {
         Roster roster = rosterRepository.findById(rosterId)
@@ -129,6 +145,14 @@ public class RosterService {
                 players);
     }
 
+    /**
+     * Picks the best available display name for a roster: custom team name,
+     * then manager display name, then a generic "Roster N" fallback for
+     * orphaned rosters with no manager.
+     * @param manager the roster's manager, or null if orphaned
+     * @param roster the roster needing a display name
+     * @return a non-null team name to show in the UI
+     */
     static String teamName(Manager manager, Roster roster) {
         if (manager != null && manager.getTeamName() != null) {
             return manager.getTeamName();

@@ -5,6 +5,11 @@ import java.util.Map;
 import java.util.TreeMap;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+/**
+ * Tunable knobs for the player valuation formula, bound from the
+ * {@code valuation.*} keys in application.yml. Plain config bean —
+ * getters/setters only, no logic (that lives in {@code ValuationService}).
+ */
 @ConfigurationProperties(prefix = "valuation")
 public class ValuationProperties {
 

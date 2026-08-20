@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
+/** Response shape of one roster in {@code GET /league/{leagueId}/rosters}. */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record SleeperRoster(
         @JsonProperty("roster_id") Integer rosterId,
@@ -12,6 +13,7 @@ public record SleeperRoster(
         List<String> starters,
         Settings settings) {
 
+    /** Win/loss record and points-for, as reported by Sleeper. */
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Settings(
             Integer wins,

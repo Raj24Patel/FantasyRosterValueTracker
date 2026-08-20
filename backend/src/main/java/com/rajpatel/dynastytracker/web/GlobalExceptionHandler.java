@@ -11,11 +11,20 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+/**
+ * Translates service-layer exceptions into RFC 7807 {@link ProblemDetail}
+ * responses, so clients get a 404/503/400 with a human-readable message
+ * instead of a raw stack trace.
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    /**
+     * @param e the untracked-league error
+     * @return a 404 problem detail describing which league wasn't found
+     */
     @ExceptionHandler(LeagueNotFoundException.class)
     ProblemDetail handleLeagueNotFound(LeagueNotFoundException e) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
@@ -23,6 +32,10 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
+    /**
+     * @param e the missing-roster error
+     * @return a 404 problem detail describing which roster wasn't found
+     */
     @ExceptionHandler(RosterNotFoundException.class)
     ProblemDetail handleRosterNotFound(RosterNotFoundException e) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
@@ -30,6 +43,10 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
+    /**
+     * @param e the Sleeper call failure (unknown league vs. genuine outage are handled differently)
+     * @return a 404 if Sleeper said the league doesn't exist, otherwise a 503 (logged server-side)
+     */
     @ExceptionHandler(SleeperApiException.class)
     ProblemDetail handleSleeperFailure(SleeperApiException e) {
         if (e.isNotFound()) {
@@ -45,6 +62,10 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
+    /**
+     * @param e the bean-validation failure (e.g. blank sleeperLeagueId)
+     * @return a 400 problem detail
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ProblemDetail handleValidation(MethodArgumentNotValidException e) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,

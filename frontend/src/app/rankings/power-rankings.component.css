@@ -1,0 +1,51 @@
+/* stacked positional-value bar */
+.bar-col {
+  width: 220px;
+  min-width: 160px;
+}
+
+.stack {
+  display: flex;
+  height: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  min-width: 8px;
+  background: var(--surface-2);
+  transform-origin: left;
+  animation: grow 0.5s ease both;
+}
+
+@keyframes grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.seg {
+  display: block;
+}
+
+.seg.qb { background: var(--qb); }
+.seg.rb { background: var(--rb); }
+.seg.wr { background: var(--wr); }
+.seg.te { background: var(--te); }
+
+.legend {
+  display: flex;
+  gap: 1.2rem;
+  padding: 0.7rem 1rem 0.5rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.legend .dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-right: 0.35rem;
+}
+
+.dot.qb { background: var(--qb); }
+.dot.rb { background: var(--rb); }
+.dot.wr { background: var(--wr); }
+.dot.te { background: var(--te); }
