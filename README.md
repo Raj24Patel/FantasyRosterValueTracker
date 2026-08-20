@@ -14,6 +14,8 @@ for different league formats (a QB is worth ~40% more in superflex).
 
 ![Power rankings](docs/screenshot-rankings.png)
 
+![Roster detail](docs/screenshot-roster.png)
+
 ![Value trends](docs/screenshot-trends.png)
 
 ## Quickstart
