@@ -1,0 +1,19 @@
+# Java / Maven
+backend/target/
+
+# Node / Angular
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+
+# Playwright
+frontend/playwright-report/
+frontend/test-results/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store

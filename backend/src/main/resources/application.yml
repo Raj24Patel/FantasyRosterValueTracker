@@ -1,0 +1,69 @@
+spring:
+  application:
+    name: dynasty-tracker
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/dynasty}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:dev}
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+sleeper:
+  base-url: ${SLEEPER_BASE_URL:https://api.sleeper.app/v1}
+
+sync:
+  cron: "0 15 4 * * *"
+  zone: America/Detroit
+  # /players/nfl is ~5MB, Sleeper asks for at most one call per day
+  player-catalog-max-age-hours: 20
+
+valuation:
+  # default for newly added leagues when Sleeper's roster_positions
+  # doesn't include SUPER_FLEX (auto-detection wins when it does)
+  superflex: false
+  superflex-qb-weight: 1.35
+  base-scale: 100
+  rank-decay: 250
+  position-weights:
+    QB: 0.85
+    RB: 1.00
+    WR: 1.05
+    TE: 0.90
+    K: 0.05
+    DEF: 0.05
+  # piecewise-linear age curves, per position: age -> factor
+  age-curves:
+    RB:
+      22: 1.15
+      24: 1.20
+      30: 0.55
+      34: 0.20
+    WR:
+      22: 1.10
+      26: 1.15
+      30: 0.75
+      34: 0.40
+    TE:
+      22: 1.00
+      27: 1.10
+      30: 0.85
+      34: 0.55
+    QB:
+      22: 1.05
+      29: 1.10
+      30: 1.05
+      34: 0.85
+  injury-penalties:
+    IR: 0.85
+    Out: 0.85
+    PUP: 0.85
+    Questionable: 0.95
+    Doubtful: 0.95

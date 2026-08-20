@@ -1,0 +1,16 @@
+# Overlay for e2e tests: points the API at a stubbed Sleeper so CI
+# doesn't depend on a third party being up.
+#   docker compose -f compose.yml -f compose.e2e.yml up -d --build
+services:
+  sleeper-stub:
+    image: node:20-alpine
+    command: node /stub/server.js
+    volumes:
+      - ./tools/sleeper-stub:/stub:ro
+
+  api:
+    environment:
+      SLEEPER_BASE_URL: http://sleeper-stub:8080/v1
+    depends_on:
+      sleeper-stub:
+        condition: service_started
