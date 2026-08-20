@@ -1,4 +1,4 @@
-# Overlay for e2e tests: points the API at a stubbed Sleeper so CI
+# Overlay for e2e tests and demos: points the API at a stubbed Sleeper so CI
 # doesn't depend on a third party being up.
 #   docker compose -f compose.yml -f compose.e2e.yml up -d --build
 services:
@@ -8,9 +8,20 @@ services:
     volumes:
       - ./tools/sleeper-stub:/stub:ro
 
+  db:
+    # Demo mode gets its own database. The stub serves a small fake player
+    # catalog, and the daily freshness guard can't tell it apart from the real
+    # ~15MB one — sharing a volume would leave real leagues valued against
+    # fake players until the guard next expires.
+    volumes: !override
+      - pgdata-demo:/var/lib/postgresql/data
+
   api:
     environment:
       SLEEPER_BASE_URL: http://sleeper-stub:8080/v1
     depends_on:
       sleeper-stub:
         condition: service_started
+
+volumes:
+  pgdata-demo:
