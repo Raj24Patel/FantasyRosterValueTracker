@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
@@ -32,6 +32,10 @@ export class LeagueListComponent implements OnInit {
   loaded = signal(false);
   /** True while an add-league request (first sync) is in flight. */
   adding = signal(false);
+  /** League awaiting delete confirmation; null when the dialog is closed. */
+  pendingRemoval = signal<League | null>(null);
+  /** True while the delete request is in flight. */
+  removing = signal(false);
   /** Bound to the league ID input field. */
   leagueId = '';
 
@@ -104,18 +108,53 @@ export class LeagueListComponent implements OnInit {
    */
   resync(league: League): void {
     this.api.resyncLeague(league.id).subscribe(() => {
-      this.toast.show(`Re-sync of "${league.name}" kicked off — refresh in a few seconds.`);
+      this.toast.success(`Re-sync of "${league.name}" started — refresh in a few seconds.`);
     });
   }
 
   /**
-   * Stops tracking a league (after a confirm dialog) and refreshes the list.
-   * @param league the league to delete, along with its snapshot history
+   * Opens the in-app confirmation dialog for removing a league. Nothing is
+   * deleted until {@link confirmRemove} runs.
+   * @param league the league the user clicked "Remove" on
    */
-  remove(league: League): void {
-    if (!confirm(`Stop tracking "${league.name}"? Snapshot history will be deleted.`)) {
+  askRemove(league: League): void {
+    this.pendingRemoval.set(league);
+  }
+
+  /** Closes the confirmation dialog without deleting anything. */
+  cancelRemove(): void {
+    this.pendingRemoval.set(null);
+  }
+
+  /**
+   * Deletes the league awaiting confirmation, along with its snapshot
+   * history, then closes the dialog and refreshes the list.
+   */
+  confirmRemove(): void {
+    const league = this.pendingRemoval();
+    if (!league) {
       return;
     }
-    this.api.deleteLeague(league.id).subscribe(() => this.refresh());
+    this.removing.set(true);
+    this.api.deleteLeague(league.id).subscribe({
+      next: () => {
+        this.removing.set(false);
+        this.pendingRemoval.set(null);
+        this.toast.success(`Stopped tracking "${league.name}".`);
+        this.refresh();
+      },
+      error: () => {
+        this.removing.set(false);
+        this.pendingRemoval.set(null);
+      }
+    });
+  }
+
+  /** Escape closes the dialog, matching what people expect from a modal. */
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.pendingRemoval() && !this.removing()) {
+      this.cancelRemove();
+    }
   }
 }

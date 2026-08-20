@@ -9,9 +9,11 @@
   <router-outlet />
 </main>
 
-<!-- error toasts from failed API calls; click to dismiss -->
+<!-- toasts: red for failures, green for confirmed actions; click to dismiss -->
 <div class="toasts">
   @for (toast of toasts.toasts(); track toast.id) {
-    <div class="toast" (click)="toasts.dismiss(toast.id)">{{ toast.message }}</div>
+    <div class="toast" [class]="'toast ' + toast.kind" (click)="toasts.dismiss(toast.id)">
+      {{ toast.message }}
+    </div>
   }
 </div>

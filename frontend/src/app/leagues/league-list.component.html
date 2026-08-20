@@ -81,7 +81,7 @@
           <a [routerLink]="['/leagues', league.id]">Power rankings</a>
           <a [routerLink]="['/leagues', league.id, 'trends']">Trends</a>
           <button class="link" (click)="resync(league)">Re-sync</button>
-          <button class="link danger" (click)="remove(league)">Remove</button>
+          <button class="link danger" (click)="askRemove(league)">Remove</button>
         </div>
       </div>
     }
@@ -110,4 +110,27 @@
       </div>
     </div>
   </section>
+}
+
+<!-- in-app confirm dialog, replacing the browser's native confirm() -->
+@if (pendingRemoval(); as target) {
+  <div class="modal-backdrop" (click)="cancelRemove()">
+    <!-- stop clicks inside the dialog from reaching the backdrop's dismiss handler -->
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="remove-title"
+         (click)="$event.stopPropagation()">
+      <h2 id="remove-title" class="modal-title">Stop tracking this league?</h2>
+      <p class="modal-body">
+        <strong>{{ target.name }}</strong> and its saved value history will be removed.
+        The trend chart starts over from scratch if you add it back.
+      </p>
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" (click)="cancelRemove()" [disabled]="removing()">
+          Cancel
+        </button>
+        <button type="button" class="btn-danger" (click)="confirmRemove()" [disabled]="removing()">
+          {{ removing() ? 'Removing…' : 'Stop tracking' }}
+        </button>
+      </div>
+    </div>
+  </div>
 }

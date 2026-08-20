@@ -53,13 +53,24 @@
 
 .toast {
   background: var(--surface-2);
-  border: 1px solid var(--danger);
+  border: 1px solid var(--border);
+  border-left-width: 3px;
   border-radius: 8px;
   padding: 0.7rem 1rem;
   font-size: 0.88rem;
   cursor: pointer;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   animation: toast-in 0.25s ease both;
+}
+
+/* something failed */
+.toast.error {
+  border-color: var(--danger);
+}
+
+/* an action the user took completed */
+.toast.success {
+  border-color: var(--rb);
 }
 
 @keyframes toast-in {

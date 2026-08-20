@@ -21,7 +21,7 @@ export const loadingInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((err: HttpErrorResponse) => {
       // the backend returns RFC 7807 problem details with a human-readable message
       const detail = err.error?.detail ?? `Request failed (${err.status || 'network error'})`;
-      toast.show(detail);
+      toast.error(detail);
       return throwError(() => err);
     }),
     finalize(() => loading.stop())
