@@ -1,15 +1,86 @@
-/* everything on this page eases in from slightly below */
-.page-title {
-  animation: rise 0.4s ease both;
+/* ── hero ─────────────────────────────────────────────────────────── */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background:
+    radial-gradient(120% 140% at 12% 0%, #1d2740 0%, transparent 55%),
+    linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
+  padding: 2.6rem 2rem 2.2rem;
+  margin-bottom: 2rem;
 }
 
-.add-league {
-  margin-bottom: 1.5rem;
-  animation: rise 0.4s ease 0.05s both;
+/* faint yard lines, like a field marked out under the text */
+.field-lines {
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.045) 0 1px,
+    transparent 1px 72px
+  );
+  mask-image: linear-gradient(180deg, transparent, #000 35%, #000 70%, transparent);
+  pointer-events: none;
 }
 
-.empty {
-  animation: rise 0.4s ease 0.15s both;
+/* slow drifting accent glow so the hero isn't static */
+.glow {
+  position: absolute;
+  top: -45%;
+  right: -10%;
+  width: 480px;
+  height: 480px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(91, 141, 239, 0.16) 0%, transparent 68%);
+  animation: drift 14s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes drift {
+  from { transform: translate(0, 0); }
+  to { transform: translate(-60px, 40px); }
+}
+
+.hero-content {
+  position: relative; /* above the decorative layers */
+  max-width: 640px;
+}
+
+.eyebrow {
+  margin: 0 0 0.6rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  animation: rise 0.4s ease backwards;
+}
+
+.headline {
+  margin: 0 0 0.7rem;
+  font-size: clamp(1.7rem, 4.2vw, 2.5rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  animation: rise 0.5s ease 0.06s backwards;
+}
+
+/* the payoff half of the headline, in the app's accent gradient */
+.accent-text {
+  display: inline-block;
+  background: linear-gradient(92deg, var(--accent) 0%, var(--te) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.subhead {
+  margin: 0 0 1.6rem;
+  color: var(--muted);
+  font-size: 1rem;
+  max-width: 33rem;
+  animation: rise 0.5s ease 0.12s backwards;
 }
 
 @keyframes rise {
@@ -23,25 +94,33 @@
   }
 }
 
-/* add-league form */
+/* ── add-league form ──────────────────────────────────────────────── */
+
+.add-league {
+  animation: rise 0.5s ease 0.18s backwards;
+}
+
 .add-league label {
   display: block;
   font-weight: 600;
-  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.45rem;
 }
 
 .add-row {
   display: flex;
   gap: 0.6rem;
+  max-width: 34rem;
 }
 
 .add-row input {
   flex: 1;
-  background: var(--bg);
+  min-width: 0;
+  background: rgba(9, 12, 20, 0.75);
   border: 1px solid var(--border);
   color: var(--text);
-  border-radius: 8px;
-  padding: 0.55rem 0.8rem;
+  border-radius: 9px;
+  padding: 0.65rem 0.9rem;
   font-size: 0.95rem;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -50,6 +129,11 @@
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(91, 141, 239, 0.18);
+}
+
+.add-row button {
+  padding: 0.65rem 1.3rem;
+  white-space: nowrap;
 }
 
 /* gentle pulse while the first sync runs */
@@ -65,13 +149,63 @@ button.syncing {
 .hint {
   color: var(--muted);
   font-size: 0.8rem;
-  margin: 0.5rem 0 0;
+  margin: 0.6rem 0 0;
 }
 
-/* league cards */
+.hint code {
+  background: var(--surface-2);
+  border-radius: 4px;
+  padding: 0.08rem 0.35rem;
+  font-size: 0.76rem;
+}
+
+/* ── summary strip ────────────────────────────────────────────────── */
+
+.stat-strip {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.8rem;
+  flex-wrap: wrap;
+}
+
+.stat {
+  flex: 1;
+  min-width: 8rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 0.85rem 1.1rem;
+  animation: rise 0.45s ease backwards;
+}
+
+.stat:nth-child(2) { animation-delay: 0.05s; }
+.stat:nth-child(3) { animation-delay: 0.1s; }
+
+.stat-value {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  color: var(--muted);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── league cards ─────────────────────────────────────────────────── */
+
+.section-title {
+  font-size: 1.05rem;
+  margin: 0 0 0.8rem;
+}
+
 .league-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
   gap: 1rem;
 }
 
@@ -93,6 +227,7 @@ button.syncing {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .league-name {
@@ -114,14 +249,100 @@ button.syncing {
   border-color: var(--te);
 }
 
+/* current #1 team preview */
+.leader {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--surface-2);
+  border-radius: 9px;
+  padding: 0.55rem 0.75rem;
+  margin: 0.85rem 0 0.2rem;
+}
+
+.crown {
+  font-size: 0.95rem;
+}
+
+.leader-team {
+  flex: 1;
+  min-width: 0;
+}
+
+.leader-name {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.leader-sub {
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
+.leader-value {
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
 .league-actions {
   display: flex;
   gap: 1rem;
-  margin-top: 0.6rem;
+  margin-top: 0.75rem;
   font-size: 0.88rem;
+  flex-wrap: wrap;
 }
 
 .league-actions a,
 .league-actions button.link {
   transition: color 0.15s ease;
+}
+
+/* ── empty state / how it works ───────────────────────────────────── */
+
+.how-it-works {
+  animation: rise 0.5s ease 0.2s backwards;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1rem;
+}
+
+.step {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 1.1rem 1.2rem;
+}
+
+.step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  background: rgba(91, 141, 239, 0.14);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+}
+
+.step h3 {
+  margin: 0 0 0.3rem;
+  font-size: 0.95rem;
+}
+
+.step p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
 }

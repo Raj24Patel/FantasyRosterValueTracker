@@ -1,41 +1,113 @@
-<h1 class="page-title">Your Leagues</h1>
+<!-- hero: yard-line motif + drifting glow behind the pitch and the add form -->
+<section class="hero">
+  <div class="field-lines" aria-hidden="true"></div>
+  <div class="glow" aria-hidden="true"></div>
 
-<form class="add-league card" (ngSubmit)="addLeague()">
-  <label for="league-id">Sleeper league ID</label>
-  <div class="add-row">
-    <input id="league-id" name="leagueId" [(ngModel)]="leagueId"
-           placeholder="e.g. 1180213086679706624" autocomplete="off" />
-    <button type="submit" [class.syncing]="adding()" [disabled]="!leagueId.trim() || adding()">
-      {{ adding() ? 'Syncing…' : 'Track league' }}
-    </button>
+  <div class="hero-content">
+    <p class="eyebrow">Sleeper · dynasty fantasy football</p>
+    <h1 class="headline">
+      Know what your roster is
+      <span class="accent-text">actually worth.</span>
+    </h1>
+    <p class="subhead">
+      Pulls your league straight from Sleeper, scores every player with a valuation model
+      built for dynasty, and tracks how each team's value moves across the season.
+    </p>
+
+    <form class="add-league" (ngSubmit)="addLeague()">
+      <label for="league-id">Sleeper league ID</label>
+      <div class="add-row">
+        <input id="league-id" name="leagueId" [(ngModel)]="leagueId"
+               placeholder="e.g. 1180213086679706624" autocomplete="off" />
+        <button type="submit" [class.syncing]="adding()" [disabled]="!leagueId.trim() || adding()">
+          {{ adding() ? 'Syncing…' : 'Track league' }}
+        </button>
+      </div>
+      <p class="hint">
+        It's the number in your league's URL — <code>sleeper.com/leagues/&lt;league id&gt;</code>.
+        No login, no API key.
+      </p>
+    </form>
   </div>
-  <p class="hint">Find it in the Sleeper app URL: sleeper.com/leagues/&lt;league id&gt;</p>
-</form>
+</section>
 
-@if (leagues().length === 0 && loaded()) {
-  <p class="empty">No leagues tracked yet. Paste your Sleeper league ID above — the first sync
-    pulls rosters and takes a few seconds.</p>
+@if (leagues().length > 0) {
+  <!-- summary strip, computed from the league list alone (no extra requests) -->
+  <div class="stat-strip">
+    <div class="stat">
+      <span class="stat-value">{{ leagues().length }}</span>
+      <span class="stat-label">{{ leagues().length === 1 ? 'league' : 'leagues' }} tracked</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">{{ totalTeams() }}</span>
+      <span class="stat-label">teams valued</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">{{ seasonLabel() }}</span>
+      <span class="stat-label">season</span>
+    </div>
+  </div>
+
+  <h2 class="section-title">Your leagues</h2>
+  <div class="league-grid">
+    @for (league of leagues(); track league.id; let i = $index) {
+      <div class="card league-card" [style.animation-delay.ms]="120 + i * 70">
+        <div class="league-card-head">
+          <a [routerLink]="['/leagues', league.id]" class="league-name">{{ league.name }}</a>
+          <span class="pill">{{ league.season }}</span>
+          @if (league.superflex) {
+            <span class="pill pill-sf" title="Superflex league">SF</span>
+          }
+        </div>
+
+        <p class="muted small">
+          {{ league.totalRosters }} teams · data as of
+          {{ league.lastSyncedAt ? (league.lastSyncedAt | date: 'MMM d, h:mm a') : 'never' }}
+        </p>
+
+        @if (leaders()[league.id]; as leader) {
+          <!-- current #1, so each card shows something league-specific at a glance -->
+          <div class="leader">
+            <span class="crown" aria-hidden="true">👑</span>
+            <div class="leader-team">
+              <span class="leader-name">{{ leader.teamName }}</span>
+              <span class="leader-sub">{{ leader.wins }}–{{ leader.losses }} · leads the league</span>
+            </div>
+            <span class="leader-value">{{ leader.totalValue | number: '1.0-0' }}</span>
+          </div>
+        }
+
+        <div class="league-actions">
+          <a [routerLink]="['/leagues', league.id]">Power rankings</a>
+          <a [routerLink]="['/leagues', league.id, 'trends']">Trends</a>
+          <button class="link" (click)="resync(league)">Re-sync</button>
+          <button class="link danger" (click)="remove(league)">Remove</button>
+        </div>
+      </div>
+    }
+  </div>
 }
 
-<div class="league-grid">
-  <!-- cards fade-and-rise in with a small stagger per card -->
-  @for (league of leagues(); track league.id; let i = $index) {
-    <div class="card league-card" [style.animation-delay.ms]="80 + i * 60">
-      <div class="league-card-head">
-        <a [routerLink]="['/leagues', league.id]" class="league-name">{{ league.name }}</a>
-        <span class="pill">{{ league.season }}</span>
-        @if (league.superflex) {
-          <span class="pill pill-sf">SF</span>
-        }
+@if (leagues().length === 0 && loaded()) {
+  <!-- empty state doubles as an explainer for anyone seeing the app for the first time -->
+  <section class="how-it-works">
+    <h2 class="section-title">How it works</h2>
+    <div class="steps">
+      <div class="step">
+        <span class="step-num">1</span>
+        <h3>Paste your league ID</h3>
+        <p>The first sync pulls managers, rosters, and Sleeper's full player catalog. Takes a few seconds.</p>
       </div>
-      <p class="muted">{{ league.totalRosters }} teams ·
-        data as of {{ league.lastSyncedAt ? (league.lastSyncedAt | date: 'MMM d, h:mm a') : 'never' }}</p>
-      <div class="league-actions">
-        <a [routerLink]="['/leagues', league.id]">Power rankings</a>
-        <a [routerLink]="['/leagues', league.id, 'trends']">Trends</a>
-        <button class="link" (click)="resync(league)">Re-sync</button>
-        <button class="link danger" (click)="remove(league)">Remove</button>
+      <div class="step">
+        <span class="step-num">2</span>
+        <h3>Every player gets scored</h3>
+        <p>Rank, age curve, positional weight, and injury status combine into one dynasty value per player.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">3</span>
+        <h3>Watch it move</h3>
+        <p>A nightly job re-syncs and snapshots each roster, so the trend chart fills in over the season.</p>
       </div>
     </div>
-  }
-</div>
+  </section>
+}

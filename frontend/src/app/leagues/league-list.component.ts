@@ -1,16 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
 import { DynastyApiService } from '../core/dynasty-api.service';
 import { ToastService } from '../core/toast.service';
-import { League } from '../core/models';
+import { League, RosterSummary } from '../core/models';
 
 /**
- * Home page. Shows the add-league form (Sleeper league ID input) and a card
- * grid of every tracked league with links to rankings/trends and
- * re-sync / remove actions.
+ * Home page. A hero with the add-league form, a summary strip of what's
+ * being tracked, and a card per league showing its current leader. Falls
+ * back to a "how it works" walkthrough when nothing is tracked yet.
  */
 @Component({
   selector: 'app-league-list',
@@ -26,23 +26,54 @@ export class LeagueListComponent implements OnInit {
 
   /** Leagues currently tracked by the backend. */
   leagues = signal<League[]>([]);
-  /** True once the first fetch has returned (gates the empty-state message). */
+  /** Current top-ranked roster per league ID, for the card previews. */
+  leaders = signal<Record<string, RosterSummary>>({});
+  /** True once the first fetch has returned (gates the empty state). */
   loaded = signal(false);
   /** True while an add-league request (first sync) is in flight. */
   adding = signal(false);
   /** Bound to the league ID input field. */
   leagueId = '';
 
+  /** Total teams across every tracked league — the middle summary stat. */
+  totalTeams = computed(() =>
+    this.leagues().reduce((sum, league) => sum + league.totalRosters, 0)
+  );
+
+  /** Seasons covered, e.g. "2025" or "2024–2025". */
+  seasonLabel = computed(() => {
+    const seasons = [...new Set(this.leagues().map((l) => l.season))].sort();
+    if (seasons.length === 0) {
+      return '—';
+    }
+    return seasons.length === 1 ? seasons[0] : `${seasons[0]}–${seasons[seasons.length - 1]}`;
+  });
+
   /** On load: fetch the tracked leagues. */
   ngOnInit(): void {
     this.refresh();
   }
 
-  /** Reloads the league list from the API. No input; updates the `leagues` signal. */
+  /** Reloads the league list, then each league's current leader. */
   refresh(): void {
     this.api.getLeagues().subscribe((leagues) => {
       this.leagues.set(leagues);
       this.loaded.set(true);
+      leagues.forEach((league) => this.loadLeader(league.id));
+    });
+  }
+
+  /**
+   * Fetches one league's rankings just to show its current #1 on the card.
+   * A league that has never synced returns no rows, in which case the card
+   * simply omits the leader line.
+   * @param leagueId the league to preview
+   */
+  private loadLeader(leagueId: string): void {
+    this.api.getPowerRankings(leagueId).subscribe((rankings) => {
+      if (rankings.length > 0) {
+        this.leaders.update((all) => ({ ...all, [leagueId]: rankings[0] }));
+      }
     });
   }
 

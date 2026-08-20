@@ -10,6 +10,8 @@ rankings and a line chart of how each team's value has moved over the season.
 Sleeper doesn't publish trade values, so the scoring model is mine — and it's configurable
 for different league formats (a QB is worth ~40% more in superflex).
 
+![Home](docs/screenshot-home.png)
+
 ![Power rankings](docs/screenshot-rankings.png)
 
 ![Value trends](docs/screenshot-trends.png)
