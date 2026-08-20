@@ -11,6 +11,10 @@ services:
       retries: 12
     volumes:
       - pgdata:/var/lib/postgresql/data
+    ports:
+      # published so `mvn spring-boot:run` on the host can reach it; override
+      # with DB_PORT if you already have Postgres on 5432
+      - "${DB_PORT:-5432}:5432"
 
   api:
     build: ./backend

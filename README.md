@@ -18,26 +18,52 @@ for different league formats (a QB is worth ~40% more in superflex).
 
 ## Quickstart
 
-```
-docker compose up
-```
-
-Then open http://localhost:4200, paste your Sleeper league ID (it's in the league URL:
-`sleeper.com/leagues/<league id>`), and the first sync pulls everything in a few seconds.
-No API keys needed — Sleeper's API is public and read-only.
-
-If port 8080 or 4200 is already taken on your machine, override either one:
+The only prerequisite is Docker Desktop (running). Nothing else needs to be installed —
+Java, Node, and Postgres all live inside the containers.
 
 ```
-API_PORT=8081 WEB_PORT=4300 docker compose up
+docker compose up --build
 ```
 
-To try it without a real league, run it against the bundled fake Sleeper server and add
-league ID `1264349217897840640`:
+First run takes a few minutes to build the images; after that it's seconds. Then open
+**http://localhost:4200**, paste your Sleeper league ID (it's the number in your league's
+URL, `sleeper.com/leagues/<league id>`), and hit **Track league**.
+
+The first sync also downloads Sleeper's full player catalog (~15MB, ~12k players), so give
+it 10–30 seconds. No API key or login needed — Sleeper's API is public and read-only.
+
+Stop it with `Ctrl+C`, or from another terminal:
+
+```
+docker compose down
+```
+
+Your leagues and value history live in a Docker volume called `pgdata` and survive a
+restart. `docker compose down -v` deletes that volume and everything in it.
+
+### If a port is already in use
+
+`docker compose up` fails with "port is already allocated" when something else holds 8080,
+4200, or 5432. Override any of them:
+
+```
+API_PORT=8081 WEB_PORT=4300 DB_PORT=5433 docker compose up
+```
+
+The UI stays at whatever `WEB_PORT` you pick — the browser only ever talks to the web
+container, which proxies `/api` to the backend internally.
+
+### Trying it without a real league
+
+The repo bundles a fake Sleeper server with a sample 8-team league, so you can see the app
+populated without touching the real API. It uses its own database, separate from your real
+one:
 
 ```
 docker compose -f compose.yml -f compose.e2e.yml up --build
 ```
+
+Then add league ID `1264349217897840640`.
 
 **Stack:** Java 21 · Spring Boot 3.3 · PostgreSQL 16 · Angular 18 · Docker Compose ·
 JUnit 5 / Mockito / Testcontainers / Playwright
@@ -138,9 +164,21 @@ per roster.
 
 ## Tests
 
+Backend (needs Docker running — the persistence test starts a real Postgres via
+Testcontainers, and Java 21):
+
 ```
-cd backend && mvn verify         # unit + web slice + Testcontainers Postgres
-cd frontend && npm run e2e       # Playwright, against the compose stack
+cd backend && mvn verify
+```
+
+End-to-end (needs the **stub** stack up, since the test adds the sample league):
+
+```
+docker compose -f compose.yml -f compose.e2e.yml up -d --build
+```
+
+```
+cd frontend && npm ci && npx playwright install chromium && npm run e2e
 ```
 
 - Valuation model: age curve, superflex toggle, junk-data cases (pure JUnit, no Spring)
@@ -155,11 +193,42 @@ cd frontend && npm run e2e       # Playwright, against the compose stack
 
 ## Development
 
+For hot reload, run Postgres in Docker and the two apps natively (needs JDK 21 and
+Node 20):
+
 ```
-docker compose up db -d                  # just Postgres
-cd backend && mvn spring-boot:run        # API on :8080
-cd frontend && npm start                 # dev server on :4200, proxies /api
+docker compose up db -d
 ```
+
+```
+cd backend && mvn spring-boot:run
+```
+
+```
+cd frontend && npm start
+```
+
+The API comes up on :8080 and the dev server on :4200, proxying `/api` to it.
+
+The backend defaults to `jdbc:postgresql://localhost:5432/dynasty` (user `postgres`,
+password `dev`).
+
+⚠️ **If you already run Postgres natively**, don't skip this. Docker will still start,
+but your native Postgres wins `localhost:5432`, so Spring connects to *that* database
+instead of this project's — and it fails confusingly (`role "postgres" does not exist`,
+or worse, an empty database that looks like lost data). Put the container on another
+port and point Spring at it:
+
+```
+DB_PORT=5433 docker compose up db -d
+```
+
+```
+SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5433/dynasty mvn spring-boot:run
+```
+
+This only affects running the backend natively. Plain `docker compose up` is unaffected,
+since the containers reach each other over Docker's internal network.
 
 ## What I'd do next
 
